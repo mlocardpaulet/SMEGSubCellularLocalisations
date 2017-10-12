@@ -33,10 +33,11 @@ mat <- mat[,which(!grepl("raw_", names(mat)))]
 na <- mat[,1]
 mat <- as.matrix(mat[,2:ncol(mat)])
 row.names(mat) <- na
+colnames(mat) <- sub("abundance_Laura.", "", colnames(mat))
 ```
 
 Remove the abundance values when no "psm_count":
-```{r}
+```{r, eval=T}
 # matrix with the number of ms/ms per prot per sample:
 matpsm <- input[,c(2,which(grepl("psm_count", names(input))))]
 matpsm <- as.matrix(matpsm[,2:ncol(matpsm)])
@@ -49,6 +50,7 @@ mat[matpsm==0 | is.na(matpsm)] <- NA
 ```
 
 We removed `r l` abundance values with NAs or 0 psm_count.
+
 
 ```{r}
 image(log(mat))
@@ -85,4 +87,37 @@ gtab$Replicate <- as.character(gtab$Replicate)
 ggplot(gtab, aes(x = PC1, y = PC2, col = Condition, label = Replicate, shape = Replicate)) + theme_bw() + geom_point()
 ```
 
+# Identities of protein detected in the cell compartments
+
+Proteins are detected in a compartment if these have an abundance in a minimum of 2 runs.
+
 Venn diagrams:
+```{r}
+# Make list with one matrix per compartment:
+l <- lapply(sort(unique(as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)]))), function(x) mat[,as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)])==x])
+names(l) <- sort(unique(as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)])))
+l2 <- l
+for (i in seq_along(l)) {
+  temp <- l2[[i]] 
+  temp[temp>0 & !is.na(temp)] <- 1
+  l2[[i]] <- temp
+}
+lsum <- lapply(l2, rowSums, na.rm = T)
+
+lprot <- lapply(1:length(l), function(x) rownames(l[[x]])[lsum[[x]]>=16])
+kable(data.frame("Cellular compartment" = names(l), "Number of proteins detected" = sapply(lprot, length)))
+#venn(lprot)
+venn(list("cytoplasm" = lprot[[1]], "mycomembrane" = lprot[[2]], "plasma membrane" = lprot[[3]], "secretome" = lprot[[4]]))
+
+int <- intersect(lprot[[1]], lprot[[2]])
+int <- intersect(lprot[[3]], int)
+int <- intersect(lprot[[4]], int)
+
+colvec <- c("darkgreen", "yellow", "red")
+
+pal <- colorRampPalette(colvec)
+
+boxplot(log10(mat[rownames(mat) %in% int,]), las = 2, main = "Proteins common to the 4 compartments")
+heatmap.2(log10(mat[rownames(mat) %in% int,]), trace = "none", col = pal(300))
+
+```
