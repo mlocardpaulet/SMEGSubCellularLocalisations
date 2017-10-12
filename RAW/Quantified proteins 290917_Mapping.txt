@@ -1,0 +1,65 @@
+Sample name	cellular compartment	biological replicate	technical replicate
+CF1_1	secretome	1	1
+CF1_2	secretome	1	2
+CF1_3	secretome	1	3
+CF1_4	secretome	1	4
+CF2_1	secretome	2	1
+CF2_2	secretome	2	2
+CF2_3	secretome	2	3
+CF2_4	secretome	2	4
+CF3_1	secretome	3	1
+CF3_2	secretome	3	2
+CF3_3	secretome	3	3
+CF3_4	secretome	3	4
+CF4_1	secretome	4	1
+CF4_2	secretome	4	2
+CF4_3	secretome	4	3
+CF4_4	secretome	4	4
+CP1_1	cytoplasm	1	1
+CP1_2	cytoplasm	1	2
+CP1_3	cytoplasm	1	3
+CP1_4	cytoplasm	1	4
+CP2_1	cytoplasm	2	1
+CP2_2	cytoplasm	2	2
+CP2_3	cytoplasm	2	3
+CP2_4	cytoplasm	2	4
+CP3_1	cytoplasm	3	1
+CP3_2	cytoplasm	3	2
+CP3_3	cytoplasm	3	3
+CP3_4	cytoplasm	3	4
+CP4_1	cytoplasm	4	1
+CP4_2	cytoplasm	4	2
+CP4_3	cytoplasm	4	3
+CP4_4	cytoplasm	4	4
+CW1_1	mycomembrane	1	1
+CW1_2	mycomembrane	1	2
+CW1_3	mycomembrane	1	3
+CW1_4	mycomembrane	1	4
+CW2_1	mycomembrane	2	1
+CW2_2	mycomembrane	2	2
+CW2_3	mycomembrane	2	3
+CW2_4	mycomembrane	2	4
+CW3_1	mycomembrane	3	1
+CW3_2	mycomembrane	3	2
+CW3_3	mycomembrane	3	3
+CW3_4	mycomembrane	3	4
+CW4_1	mycomembrane	4	1
+CW4_2	mycomembrane	4	2
+CW4_3	mycomembrane	4	3
+CW4_4	mycomembrane	4	4
+MP1_1	plasma membrane	1	1
+MP1_2	plasma membrane	1	2
+MP1_3	plasma membrane	1	3
+MP1_4	plasma membrane	1	4
+MP2_1	plasma membrane	2	1
+MP2_2	plasma membrane	2	2
+MP2_3	plasma membrane	2	3
+MP2_4	plasma membrane	2	4
+MP3_1	plasma membrane	3	1
+MP3_2	plasma membrane	3	2
+MP3_3	plasma membrane	3	3
+MP3_4	plasma membrane	3	4
+MP4_1	plasma membrane	4	1
+MP4_2	plasma membrane	4	2
+MP4_3	plasma membrane	4	3
+MP4_4	plasma membrane	4	4
