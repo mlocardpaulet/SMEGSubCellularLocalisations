@@ -19,6 +19,8 @@ require(knitr)
 Input: "RAW/Quantified proteins 290917.txt"
 I have replaced the "#", "'" and tab in the excel file (Proline export) before saving in tab-delimited format.
 
+**There are rows with no values in the abundance. Why?**
+
 ```{r}
 input <- read.table("RAW/Quantified proteins 290917.txt", header = T, sep = "\t")
 mapping <- read.table("RAW/Quantified proteins 290917_Mapping.txt", header = T, sep = "\t")
@@ -31,6 +33,24 @@ mat <- mat[,which(!grepl("raw_", names(mat)))]
 na <- mat[,1]
 mat <- as.matrix(mat[,2:ncol(mat)])
 row.names(mat) <- na
+```
+
+Remove the abundance values when no "psm_count":
+```{r}
+# matrix with the number of ms/ms per prot per sample:
+matpsm <- input[,c(2,which(grepl("psm_count", names(input))))]
+matpsm <- as.matrix(matpsm[,2:ncol(matpsm)])
+# Remove abundance values for cells with psm count == 0 or NA:
+
+hist(log(mat), main = "Log intensities, in red the ones removed")
+hist(log(mat[matpsm==0 | is.na(matpsm)]), add = T, col = "red")
+l <- length(mat[matpsm==0 | is.na(matpsm)])
+mat[matpsm==0 | is.na(matpsm)] <- NA
+```
+
+We removed `r l` abundance values with NAs or 0 psm_count.
+
+```{r}
 image(log(mat))
 ```
 
@@ -48,7 +68,7 @@ corrplot(M, method="color")
 par(mar = c(8,2,4,1))
 boxplot(log(mat), las = 2, cex = 0.5, main = "log-transformed abundance across runs")
 
-heatmap.2(log(mat[complete.cases(mat),]))
+heatmap.2(log(mat[complete.cases(mat),]), trace = "none", scale = "column")
 
 pca <- prcomp(log(mat[complete.cases(mat),]), center = F, scale = F)
 
@@ -63,6 +83,6 @@ gtab$Replicate <- mapping$biological.replicate[match(sub("abundance_Laura.", "",
 gtab$Replicate <- as.character(gtab$Replicate)
 
 ggplot(gtab, aes(x = PC1, y = PC2, col = Condition, label = Replicate, shape = Replicate)) + theme_bw() + geom_point()
-
-
 ```
+
+Venn diagrams:
