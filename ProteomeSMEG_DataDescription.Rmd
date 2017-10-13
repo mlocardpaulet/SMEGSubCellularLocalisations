@@ -17,10 +17,6 @@ require(knitr)
 ```
 
 ```{r}
-# Create colour matrix for the figures:
-colgroups <- c("brown3", "deepskyblue", "tomato", "slateblue3")
-matcol <- cbind(colgroups, unique(substr(colnames(mat), 1, 2)), as.character(mapping$cellular.compartment[match(unique(substr(colnames(mat), 1, 2)), substr(mapping$Sample.name, 1, 2))]))
-
 # Create colour function for the heatmap:
 
 colvec <- c("darkgreen", "yellow", "red")
@@ -51,6 +47,10 @@ na <- mat[,1]
 mat <- as.matrix(mat[,2:ncol(mat)])
 row.names(mat) <- na
 colnames(mat) <- sub("abundance_Laura.", "", colnames(mat))
+
+# Create colour matrix for the figures:
+colgroups <- c("brown3", "deepskyblue", "tomato", "slateblue3")
+matcol <- cbind(colgroups, unique(substr(colnames(mat), 1, 2)), as.character(mapping$cellular.compartment[match(unique(substr(colnames(mat), 1, 2)), substr(mapping$Sample.name, 1, 2))]))
 ```
 
 # Data cleaning
@@ -173,6 +173,14 @@ write.table(input$description[match(secprot, input$accession)], "Output/cytoplas
 ```
 
 The lists of proteins identified in the compartments are saved in "Output/"
+
+# Data export
+
+I export the data in "Data\"
+
+```{r, echo=T}
+save(list = c("input", "mat", "mapping", "matcol"), file = "Data/Data00.Rdata")
+```
 
 ```{r}
 sessionInfo()
