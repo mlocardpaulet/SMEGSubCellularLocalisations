@@ -177,7 +177,7 @@ ggplot(gtab, aes(x = PC1, y = PC2, col = Condition, label = Replicate, shape = R
 The data is exported as "Output/ExportedTableBeforeStat.txt"
 ```{r}
 write.table(export, row.names = F, "Output/ExportedTableBeforeStat.txt", sep = "\t")
-save(list = c("export", "mapping", "mat"), file = "Data/Data01.Rdata")
+save(list = c("export", "mapping", "mat", "matcol"), file = "Data/Data01.Rdata")
 ```
 
 

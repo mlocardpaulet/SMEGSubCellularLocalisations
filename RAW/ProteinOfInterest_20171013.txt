@@ -1,0 +1,55 @@
+GeneNameLaura	accession	samesets_accessions	description	Comments
+kasA	tr|A0R0B4|A0R0B4_MYCS2	"tr|A0R0B4|A0R0B4_MYCS2; tr|I7FPP0|I7FPP0_MYCS2"	3-oxoacyl-[acyl-carrier-protein] synthase 1 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_4327 PE=3 SV=1	FasII
+kasB	tr|A0R0B5|A0R0B5_MYCS2	"tr|A0R0B5|A0R0B5_MYCS2; tr|I7GD96|I7GD96_MYCS2"	3-oxoacyl-[acyl-carrier-protein] synthase 2 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_4328 PE=3 SV=1	FasII
+HadB	tr|A0QS41|A0QS41_MYCS2	"tr|A0QS41|A0QS41_MYCS2; tr|I7FXZ1|I7FXZ1_MYCS2"	MaoC family protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1341 PE=1 SV=1	FasII
+inhA	sp|P42829|INHA_MYCS2	sp|P42829|INHA_MYCS2	Enoyl-[acyl-carrier-protein] reductase [NADH] OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=inhA PE=1 SV=1	FasII
+HadC	tr|A0QS42|A0QS42_MYCS2	"tr|A0QS42|A0QS42_MYCS2; tr|I7FFY1|I7FFY1_MYCS2"	UPF0336 protein MSMEG_1342 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1342 PE=3 SV=1	FasII
+HadA			UPF0336 protein MSMEG_1340 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1340 PE=1 SV=1	FasII
+acpM	sp|A0R0B3|ACPM_MYCS2	sp|A0R0B3|ACPM_MYCS2	Meromycolate extension acyl carrier protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=acpM PE=1 SV=1	FasII
+fabD	sp|A0R0B2|FABD_MYCS2	sp|A0R0B2|FABD_MYCS2	Malonyl CoA-acyl carrier protein transacylase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=fabD PE=1 SV=1	FasII
+MabA				
+FabH				
+FabD2				
+FadD32	tr|A0R618|A0R618_MYCS2	"tr|A0R618|A0R618_MYCS2; tr|I7GFQ6|I7GFQ6_MYCS2"	Acyl-CoA synthase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_6393 PE=1 SV=1	
+pks13	tr|I7FMV0|I7FMV0_MYCS2	tr|I7FMV0|I7FMV0_MYCS2	Polyketide synthase PKS13 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=pks13 PE=4 SV=1	
+CmrA	tr|A0R1E4|A0R1E4_MYCS2	"tr|A0R1E4|A0R1E4_MYCS2; tr|I7GCS8|I7GCS8_MYCS2"	Short-chain dehydrogenase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_4722 PE=4 SV=1	
+accA3	tr|A0QTE1|A0QTE1_MYCS2	"tr|A0QTE1|A0QTE1_MYCS2; tr|I7G6G9|I7G6G9_MYCS2"	Acetyl-/propionyl-coenzyme A carboxylase alpha chain OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1807 PE=4 SV=1	
+accD6	tr|A0R0B6|A0R0B6_MYCS2	"tr|A0R0B6|A0R0B6_MYCS2; tr|I7FH10|I7FH10_MYCS2"	Propionyl-CoA carboxylase beta chain OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_4329 PE=4 SV=1	
+accD5	tr|A0QTE7|A0QTE7_MYCS2	"tr|A0QTE7|A0QTE7_MYCS2; tr|I7G4Z0|I7G4Z0_MYCS2"	Propionyl-CoA carboxylase beta chain OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1813 PE=4 SV=1	
+FAS1	tr|A0R1H7|A0R1H7_MYCS2	"tr|A0R1H7|A0R1H7_MYCS2; tr|I7GCU8|I7GCU8_MYCS2"	Fatty acid synthase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_4757 PE=1 SV=1	
+acpS	sp|A0R1H6|ACPS_MYCS2	sp|A0R1H6|ACPS_MYCS2	Holo-[acyl-carrier-protein] synthase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=acpS PE=1 SV=1	
+AccE	tr|A0QTE6|A0QTE6_MYCS2	"tr|A0QTE6|A0QTE6_MYCS2; tr|I7F9I8|I7F9I8_MYCS2"	Uncharacterized protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1812 PE=4 SV=1	
+mmpL3	tr|A0QP27|A0QP27_MYCS2	"tr|A0QP27|A0QP27_MYCS2; tr|I7G2R2|I7G2R2_MYCS2"	Membrane protein, MmpL family protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0250 PE=4 SV=1	
+umaA	tr|A0QQX8|A0QQX8_MYCS2	"tr|A0QQX8|A0QQX8_MYCS2; tr|I7G2Q2|I7G2Q2_MYCS2"	Methoxy mycolic acid synthase 1 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0913 PE=4 SV=1	
+cmaA1	tr|A0QS49|A0QS49_MYCS2	"tr|A0QS49|A0QS49_MYCS2; tr|I7F857|I7F857_MYCS2"	Cyclopropane-fatty-acyl-phospholipid synthase 1 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1350 PE=4 SV=1	
+MmaA1	tr|A0QY53|A0QY53_MYCS2	"tr|A0QY53|A0QY53_MYCS2; tr|I7G9W3|I7G9W3_MYCS2"	Cyclopropane-fatty-acyl-phospholipid synthase 1 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_3538 PE=4 SV=1	
+MmaA2	tr|A0QRQ9|A0QRQ9_MYCS2	"tr|A0QRQ9|A0QRQ9_MYCS2; tr|I7FFK7|I7FFK7_MYCS2"	Cyclopropane-fatty-acyl-phospholipid synthase 1 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1205 PE=4 SV=1	
+MmaA3	tr|A0QS49|A0QS49_MYCS2	"tr|A0QS49|A0QS49_MYCS2; tr|I7F857|I7F857_MYCS2"	Cyclopropane-fatty-acyl-phospholipid synthase 1 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1350 PE=4 SV=1	
+MmaA4	tr|A0QQX8|A0QQX8_MYCS2	"tr|A0QQX8|A0QQX8_MYCS2; tr|I7G2Q2|I7G2Q2_MYCS2"	Methoxy mycolic acid synthase 1 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0913 PE=4 SV=1	
+UmaA1				
+PcaA				
+HdtZ	tr|A0QUG7|A0QUG7_MYCS2	"tr|A0QUG7|A0QUG7_MYCS2; tr|I7G7I0|I7G7I0_MYCS2"	ZbpA protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_2201 PE=4 SV=1	
+HdtZ	tr|A0QP38|A0QP38_MYCS2	"tr|A0QP38|A0QP38_MYCS2; tr|I7F536|I7F536_MYCS2"	p40 protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0261 PE=4 SV=1	
+HdtX	tr|A0QPE6|A0QPE6_MYCS2	"tr|A0QPE6|A0QPE6_MYCS2; tr|I7F5F7|I7F5F7_MYCS2"	MaoC like domain protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0371 PE=4 SV=1	
+HadL			UPF0336 protein MSMEG_0948 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0948 PE=3 SV=1	
+HadA			UPF0336 protein MSMEG_1340 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1340 PE=1 SV=1	
+HadB	tr|A0QS41|A0QS41_MYCS2	"tr|A0QS41|A0QS41_MYCS2; tr|I7FXZ1|I7FXZ1_MYCS2"	MaoC family protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1341 PE=1 SV=1	
+HadC	tr|A0QS42|A0QS42_MYCS2	"tr|A0QS42|A0QS42_MYCS2; tr|I7FFY1|I7FFY1_MYCS2"	UPF0336 protein MSMEG_1342 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_1342 PE=3 SV=1	
+HdtY	tr|A0R4T0|A0R4T0_MYCS2	"tr|A0R4T0|A0R4T0_MYCS2; tr|I7FLM5|I7FLM5_MYCS2"	Putative peroxisomal multifunctional enzyme type 2 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_5943 PE=4 SV=1	
+	tr|A0R724|A0R724_MYCS2	"tr|A0R724|A0R724_MYCS2; tr|I7FVN2|I7FVN2_MYCS2"	MaoC like domain protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_6754 PE=1 SV=1	
+DesA1	tr|A0R4B3|A0R4B3_MYCS2	"tr|A0R4B3|A0R4B3_MYCS2; tr|I7FL78|I7FL78_MYCS2"	Fatty acid desaturase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_5773 PE=4 SV=1	
+desA2	tr|A0R2V6|A0R2V6_MYCS2	"tr|A0R2V6|A0R2V6_MYCS2; tr|I7GF12|I7GF12_MYCS2"	Acyl-[ACP] desaturase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_5248 PE=4 SV=1	
+DesA3				
+FatA/B	tr|A0QQX4|A0QQX4_MYCS2	tr|A0QQX4|A0QQX4_MYCS2	Acyl-ACP thioesterase superfamily protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0909 PE=4 SV=1	
+Culp6 clp6	tr|A0R619|A0R619_MYCS2	"tr|A0R619|A0R619_MYCS2; tr|I7GAQ7|I7GAQ7_MYCS2"	Uncharacterized protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_6394 PE=1 SV=1	
+tesB1	tr|A0QXA4|A0QXA4_MYCS2	"tr|A0QXA4|A0QXA4_MYCS2; tr|I7FDM1|I7FDM1_MYCS2"	Acyl-CoA thioesterase II OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_3228 PE=4 SV=1	
+tesB	tr|A0QWG9|A0QWG9_MYCS2	"tr|A0QWG9|A0QWG9_MYCS2; tr|I7FKQ9|I7FKQ9_MYCS2"	Acyl-CoA thioesterase II OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=tesB PE=4 SV=1	
+LtP3	tr|A0R4R1|A0R4R1_MYCS2	"tr|A0R4R1|A0R4R1_MYCS2; tr|I7G9A0|I7G9A0_MYCS2"	Acetyl-CoA acetyltransferase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_5923 PE=4 SV=1	
+LtP4	tr|I7GF46|I7GF46_MYCS2	tr|I7GF46|I7GF46_MYCS2	Lipid transfer protein or keto acyl-CoA thiolase Ltp4 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEI_5762 PE=4 SV=1	
+FadA	tr|A0R466|A0R466_MYCS2	"tr|A0R466|A0R466_MYCS2; tr|I7GFN6|I7GFN6_MYCS2"	Acetyl-CoA acetyltransferase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_5721 PE=3 SV=1	
+FadB	tr|A0R465|A0R465_MYCS2	"tr|A0R465|A0R465_MYCS2; tr|I7FT13|I7FT13_MYCS2"	Putative 3-hydroxyacyl-CoA dehydrogenase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_5720 PE=4 SV=1	
+fabG	sp|P71534|FABG_MYCS2	sp|P71534|FABG_MYCS2	3-oxoacyl-[acyl-carrier-protein] reductase FabG OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=fabG PE=3 SV=2	
+fabG3	tr|A0QY31|A0QY31_MYCS2	"tr|A0QY31|A0QY31_MYCS2; tr|I7FMI2|I7FMI2_MYCS2"	3-alpha-(Or 20-beta)-hydroxysteroid dehydrogenase OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_3515 PE=4 SV=1	
+fabG	tr|A0QY96|A0QY96_MYCS2	"tr|A0QY96|A0QY96_MYCS2; tr|I7FMN5|I7FMN5_MYCS2"	FabG protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_3581 PE=3 SV=1	
+FabG2	tr|I7G7I4|I7G7I4_MYCS2	tr|I7G7I4|I7G7I4_MYCS2	3-oxoacyl-acyl-carrier protein reductase fabG2 OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=fabG2 PE=4 SV=1	
+fabG4	tr|A0QPE7|A0QPE7_MYCS2	"tr|A0QPE7|A0QPE7_MYCS2; tr|I7G1P3|I7G1P3_MYCS2"	Oxidoreductase, short chain dehydrogenase/reductase family protein OS=Mycobacterium smegmatis (strain ATCC 700084 / mc(2)155) GN=MSMEG_0372 PE=1 SV=1	

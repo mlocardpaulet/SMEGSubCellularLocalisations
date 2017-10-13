@@ -17,6 +17,7 @@ require(knitr)
 require(reshape2)
 require(VIM) # visualisation missing data
 require(multcompView) # extract_p()
+require(ggrepel)
 ```
 
 ```{r}
@@ -88,12 +89,23 @@ load(file = "Data/Data02.Rdata")
 
 Volcano plot per comparison:
 
+We map the proteins of interest (in colour).
+
+```{r}
+# Table of proteins of interest:
+tabprotLaura <- read.table("RAW/ProteinOfInterest_20171013.txt", sep = "\t", header = T)
+```
 
 ```{r}
 for (i in 1:ncol(matDiff)) {
   gtab <- data.frame("Diff"=matDiff[,i], "pTukey"=matpTukey[,i])
+  gtab$Gene <- tabprotLaura$GeneNameLaura[match(rownames(gtab), tabprotLaura$accession)]
+  gtab$col <- ifelse(!is.na(gtab$Gene), "Regulated", "Not regulated")
+  vec <- tabprotLaura$Comments[match(gtab$Gene, tabprotLaura$GeneNameLaura)]
+  gtab$col[vec=="FasII"] <-  "FasII"
+  gtab <- gtab[order(gtab$col),]
   ti <- colnames(matDiff)[i]
-  g <- ggplot(gtab, aes(x = Diff, y = -log10(pTukey))) + geom_point(alpha = 0.6) + ggtitle(ti) + geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + theme_bw()
+  g <- ggplot(gtab, aes(x = Diff, y = -log10(pTukey), col = col, label = Gene)) + geom_point(alpha = 0.6) + ggtitle(ti) + geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + theme_bw() + scale_color_manual(values = c("red", "grey80", "dodgerblue4")) + geom_text_repel()
   print(g)
 }
 ```
@@ -113,6 +125,22 @@ write.table(export, row.names = F, "Output/ExportedTableAfterStat.txt", sep = "\
 save(list = c("export", "mapping", "mattot"), file = "Data/Data03.Rdata")
 ```
 
+# Heatmap of proteins of interest
+
+```{r}
+hm <- export[export$accession %in% tabprotLaura$accession,grepl("_MeanTech", names(export))]
+hm$accession <- export$accession[export$accession %in% tabprotLaura$accession]
+hm$gene <- tabprotLaura$GeneNameLaura[match(hm$accession, tabprotLaura$accession)]
+hm$FasII <- tabprotLaura$Comments[match(hm$accession, tabprotLaura$accession)]
+
+hm2 <- as.matrix(hm[,1:16])
+rownames(hm2) <- hm$accession
+hm2[is.na(hm2)] <- 0
+colnames(hm2) <- sub("_MeanTech", "", colnames(hm2))
+
+fasII <- ifelse(hm$FasII=="FasII", 2, 1)
+heatmap.2(scale(hm2, center = F, scale = F), ColSideColors = matcol[match(substr(colnames(mat), 1, 2), matcol[,2]),1], col = pal(300), trace = "none", mar = c(4,13), breaks = c(0, seq(from = 10, to = 35, length.out = 300)), colRow = fasII)
+```
 
 *******************************************************************************
 ```{r}
