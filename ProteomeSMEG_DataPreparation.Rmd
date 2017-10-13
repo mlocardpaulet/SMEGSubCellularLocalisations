@@ -1,0 +1,191 @@
+---
+title: "Proteomic analysis SMEG"
+author: "Marie Locard-Paulet"
+date: '`r date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r, message=F}
+require(ggplot2)
+require(corrplot)
+require(gplots)
+require(knitr)
+require(reshape2)
+require(VIM) # visualisation missing data
+```
+
+```{r}
+# Create colour function for the heatmap:
+colvec <- c("darkgreen", "yellow", "red")
+pal <- colorRampPalette(colvec)
+
+mlpplot90 <- function(plot) {
+        print(plot + theme_minimal() + scale_fill_brewer(palette = "Set1") + theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8)))
+}
+```
+
+```{r, echo=T}
+load("Data/Data00.Rdata")
+```
+
+
+# Data normalisation 
+
+1/ Log2-transform the matrix
+
+```{r}
+matlog <- log2(mat)
+hist(matlog)
+```
+
+2/ Substract the median of medians
+
+```{r}
+med0 <- sapply(1:ncol(matlog), function(x) {median(matlog[,x], na.rm = T)})
+med1 <- median(med0)
+med <- med0-med1
+```
+
+```{r}
+# Make export table:
+colnames(mat) <- paste0(colnames(mat), "_woMS2")
+export <- cbind(input, mat)
+colnames(matlog) <- paste0(colnames(matlog), "_Log2")
+export <- cbind(export, matlog)
+
+mat <- matlog
+```
+
+```{r}
+boxplot(matlog, las = 2, main = "Log2-transformed intensities", cex = 0.4, cex.axis = 0.5)
+rm(matlog)
+for (i in 1:ncol(mat)) {
+  mat[,i] <- mat[,i]-med[i]
+}
+boxplot(mat, las = 2, main = "Log2-transformed intensities after normalisation", cex = 0.4, cex.axis = 0.5)
+
+# Make export table:
+colnames(mat) <- sub("_Log2", "_Normalised", colnames(mat))
+export <- cbind(export, mat)
+```
+
+# Agregation of technical data
+
+I calculate the mean of the technical repeats.
+
+```{r}
+colnames(mat) <- sub("_[1234]_Normalised", "", colnames(mat))
+vec <- sort(unique(colnames(mat)))
+mat2 <- matrix(ncol = length(vec), nrow = nrow(mat))
+colnames(mat2) <- vec
+rownames(mat2) <- rownames(mat)
+matcv <- mat2
+for (i in 1:length(vec)) {
+  val <- vec[i]
+  mattemp <- mat[,colnames(mat)==val]
+  m <- rowMeans(mattemp, na.rm = T)
+  s <- sapply(1:nrow(mattemp), function(x) {sd(mattemp[x,], na.rm = T)})
+  s <- s/m
+  mat2[,i] <- m
+  matcv[,i] <- s
+}
+boxplot(mat2, main = "Mean of technical repeats", cex = 0.4, cex.axis = 0.6)
+hist(matcv, col = "darkblue", main = "CV of all technical values")
+```
+
+```{r}
+# Make export table:
+colnames(mat2) <- paste0(colnames(mat2), "_MeanTech")
+colnames(matcv) <- paste0(colnames(matcv), "_CVTech")
+export <- cbind(export, mat2, matcv)
+
+mat <- mat2
+rm(list = c("mat2", "mattemp", "matcv"))
+```
+
+# Replacement of missing values
+
+Missing values are in red, higher intensities are darker:
+```{r}
+matrixplot(mat)
+```
+
+Keep track and remove the proteins with only missing values:
+```{r}
+k <- sapply(1:nrow(mat), function(x) length(mat[x,][is.na(mat[x,])]))
+ProtMV <- rownames(mat)[k==ncol(mat)]
+```
+
+It concerns `r length(ProtMV)`
+
+```{r}
+gtab <- melt(mat)
+g <- ggplot(gtab, aes(x = Var2, y = value, fill = substr(Var2, 1, 2))) + geom_violin()
+mlpplot90(g)
+
+# Replacement missing values:
+matrep <- mat
+repval <- sapply(1:ncol(mat), function(x) {quantile(mat[,x][!is.na(mat[,x])], probs = 0.01)})
+for (i in 1:ncol(matrep)) {
+  matrep[,i][is.na(matrep[,i])] <- repval[i]
+}
+
+# Put back NAs in the proteins from the ProtMV list:
+matrep[rownames(matrep) %in% ProtMV,] <- NA
+
+gtab <- melt(matrep)
+g <- ggplot(gtab, aes(x = Var2, y = value, fill = substr(Var2, 1, 2))) + geom_violin()
+mlpplot90(g)
+```
+
+```{r}
+# Make export table:
+colnames(matrep) <- sub("_MeanTech", "_woMissingVal", colnames(matrep))
+export <- cbind(export, matrep)
+
+mat <- matrep
+rm(matrep)
+```
+
+Visualisation of multivariate analysis:
+I center the data.
+
+```{r}
+boxplot(mat, las = 2, main = "Log2-transformed data after replacement", cex = 0.4, cex.axis = 0.5)
+heatmap.2(scale(mat[complete.cases(mat),], center = T, scale = F), labRow = FALSE, ColSideColors = matcol[match(substr(colnames(mat), 1, 2), matcol[,2]),1], col = pal(300), trace = "none", margins = c(9,7))
+```
+
+```{r}
+pca <- prcomp(mat[complete.cases(mat),], center = T, scale = F)
+
+tab <- summary(pca)
+kable(tab$importance[,1:3])
+
+gtab <- pca$rotation
+gtab <- as.data.frame(gtab)
+gtab$Condition <- mapping$cellular.compartment[match(sub("_woMissingVal", "", colnames(mat)), sub("_[1234]", "", mapping$Sample.name))]
+gtab$Replicate <- mapping$biological.replicate[match(sub("_woMissingVal", "", colnames(mat)), sub("_[1234]", "", mapping$Sample.name))]
+gtab$Replicate <- as.character(gtab$Replicate)
+
+ggplot(gtab, aes(x = PC1, y = PC2, col = Condition, label = Replicate, shape = Replicate)) + theme_bw() + geom_point() + scale_colour_manual(values = matcol[match(matcol[,3],levels(gtab$Condition)),1])
+```
+
+The data is exported as "Output/ExportedTableBeforeStat.txt"
+```{r}
+write.table(export, row.names = F, "Output/ExportedTableBeforeStat.txt", sep = "\t")
+save(list = c("export", "mapping", "mat"), file = "Data/Data01.Rdata")
+```
+
+
+
+
+
+
+*******************************************************************************
+```{r}
+sessionInfo()
+```

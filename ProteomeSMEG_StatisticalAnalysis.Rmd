@@ -1,0 +1,120 @@
+---
+title: "Proteomic analysis SMEG"
+author: "Marie Locard-Paulet"
+date: '`r date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r, message=F}
+require(ggplot2)
+require(corrplot)
+require(gplots)
+require(knitr)
+require(reshape2)
+require(VIM) # visualisation missing data
+require(multcompView) # extract_p()
+```
+
+```{r}
+# Create colour function for the heatmap:
+colvec <- c("darkgreen", "yellow", "red")
+pal <- colorRampPalette(colvec)
+
+mlpplot90 <- function(plot) {
+        print(plot + theme_minimal() + scale_fill_brewer(palette = "Set1") + theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8)))
+}
+```
+
+```{r, echo=T}
+load("Data/Data01.Rdata")
+```
+
+# ANOVA
+
+I remove from the matrix the rows with only missing values:
+```{r}
+mat <- mat[sapply(1:nrow(mat), function(x) {length(mat[x,][is.na(mat[x,])])})<ncol(mat),]
+colnames(mat) <- sub("_woMissingVal", "", colnames(mat))
+```
+
+For each protein in the table, I perform an anova:
+```{r, eval = F}
+matmean <- matrix(ncol = 4, nrow = nrow(mat))
+colnames(matmean) <- sort(unique(substr(rownames(mattemp), 1, 2)))
+rownames(matmean) <- rownames(mat)
+
+vecpval <- vector(length = nrow(mat))
+
+matpTukey <- matrix(ncol = 6, nrow = nrow(mat))
+colnames(matpTukey) <- sort(c("CP-CF", "CW-CF", "MP-CF", "CW-CP", "MP-CP", "MP-CW"))
+rownames(matpTukey) <- rownames(mat)
+matDiff <- matrix(ncol = 6, nrow = nrow(mat))
+colnames(matDiff) <- sort(c("CP-CF", "CW-CF", "MP-CF", "CW-CP", "MP-CP", "MP-CW"))
+rownames(matDiff) <- rownames(mat)
+
+for (i in 1:nrow(mat)) {
+  prot <- rownames(mat)[i]
+  mattemp <- melt(mat[i,])
+  mattemp$condition <- substr(rownames(mattemp), 1, 2)
+  a <- aov(value~condition, data = mattemp)
+  a1 <- anova(a)
+  pval <- a1$`Pr(>F)`[1]
+  m <- model.tables(a, "means")$tables$condition # mean per condition
+  m <- m[order(names(m))]
+  Tuk <- TukeyHSD(a)
+  pTuk <- extract_p(Tuk)$condition
+  pTuk <- pTuk[order(names(pTuk))]
+  Diff <- Tuk$condition[,1]
+  Diff <- Diff[order(names(Diff))]
+  matmean[i,] <- m
+  vecpval[i] <- pval
+  if (sum(names(Diff)==names(pTuk) & names(pTuk)==colnames(matDiff))==6) {
+    matDiff[i,] <- Diff
+    matpTukey[i,] <- pTuk
+  } else {
+    print("error")
+  }
+}
+save(list = c("matmean", "matDiff", "matpTukey", "vecpval"), file = "Data/Data02.Rdata")
+```
+
+```{r}
+load(file = "Data/Data02.Rdata")
+```
+
+Volcano plot per comparison:
+
+
+```{r}
+for (i in 1:ncol(matDiff)) {
+  gtab <- data.frame("Diff"=matDiff[,i], "pTukey"=matpTukey[,i])
+  ti <- colnames(matDiff)[i]
+  g <- ggplot(gtab, aes(x = Diff, y = -log10(pTukey))) + geom_point(alpha = 0.6) + ggtitle(ti) + geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + theme_bw()
+  print(g)
+}
+```
+
+Save export table in the output:
+
+```{r}
+colnames(matDiff) <- paste0(colnames(matDiff), "_Diff")
+colnames(matpTukey) <- paste0(colnames(matpTukey), "_pTukey")
+colnames(matmean) <- paste0(colnames(matmean), "_Mean")
+
+mattot <- cbind(matmean, matDiff, "pvalAnova" = vecpval, matpTukey)
+mattot <- cbind(mattot, "accession"=rownames(mattot))
+export <- merge(export, mattot, by = "accession", all = T)
+
+write.table(export, row.names = F, "Output/ExportedTableAfterStat.txt", sep = "\t")
+save(list = c("export", "mapping", "mattot"), file = "Data/Data03.Rdata")
+```
+
+
+*******************************************************************************
+```{r}
+sessionInfo()
+```
