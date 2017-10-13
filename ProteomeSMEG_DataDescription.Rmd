@@ -16,6 +16,18 @@ require(gplots)
 require(knitr)
 ```
 
+```{r}
+# Create colour matrix for the figures:
+colgroups <- c("brown3", "deepskyblue", "tomato", "slateblue3")
+matcol <- cbind(colgroups, unique(substr(colnames(mat), 1, 2)), as.character(mapping$cellular.compartment[match(unique(substr(colnames(mat), 1, 2)), substr(mapping$Sample.name, 1, 2))]))
+
+# Create colour function for the heatmap:
+
+colvec <- c("darkgreen", "yellow", "red")
+pal <- colorRampPalette(colvec)
+
+```
+
 # Data input
 
 Input: "RAW/Quantified proteins 290917.txt"
@@ -88,15 +100,6 @@ boxplot(log(mat), las = 2, cex = 0.4, cex.axis = 0.5, main = "log-transformed ab
 M <- cor(log(mat[complete.cases(mat),]))
 corrplot(M, method="color", tl.col = "black", tl.cex = 0.5, mar = c(1,1,1,1), order = "hclust")
 par(mar = c(8,2,4,1))
-
-# Create colour matrix for the figures:
-colgroups <- c("brown3", "deepskyblue", "tomato", "slateblue3")
-matcol <- cbind(colgroups, unique(substr(colnames(mat), 1, 2)), as.character(mapping$cellular.compartment[match(unique(substr(colnames(mat), 1, 2)), substr(mapping$Sample.name, 1, 2))]))
-
-# Create colour function for the heatmap:
-
-colvec <- c("darkgreen", "yellow", "red")
-pal <- colorRampPalette(colvec)
 
 # Heatmap:
 heatmap.2(scale(log(mat[complete.cases(mat),]), center = T, scale = F), trace = "none", labRow = FALSE, ColSideColors = matcol[match(substr(colnames(mat), 1, 2), matcol[,2]),1], col = pal(300))
