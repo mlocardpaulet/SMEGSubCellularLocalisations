@@ -126,22 +126,32 @@ ggplot(gtab, aes(x = PC1, y = PC2, col = Condition, label = Replicate, shape = R
 
 # Identities of the proteins detected in the cell compartments
 
-Proteins are detected in a compartment if these have an abundance in all the runs.
+Proteins are detected in a compartment if these have a detected abundance (with associated MS2) in a minimum of one run per biological replicate.
 
 Venn diagrams:
 ```{r}
 # Make list with one matrix per compartment:
 l <- lapply(sort(unique(as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)]))), function(x) mat[,as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)])==x])
 names(l) <- sort(unique(as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)])))
+# Replace values per 1 if present:
 l2 <- l
 for (i in seq_along(l)) {
   temp <- l2[[i]] 
   temp[temp>0 & !is.na(temp)] <- 1
   l2[[i]] <- temp
 }
-lsum <- lapply(l2, rowSums, na.rm = T)
+# Subset the matrices per biological replicate:
+l3 <- l2
+for (i in seq_along(l2)) {
+  ltemp <- lapply(1:4, function(x) {
+    l2[[i]][,as.character(mapping$biological.replicate[match(colnames(l2[[i]]), mapping$Sample.name)])==x]
+  }) 
+  temp <- sapply(ltemp, rowSums, na.rm = T)
+  temp[temp>=1] <- 1
+  l3[[i]] <- rowSums(temp)
+}
 
-lprot <- lapply(1:length(l), function(x) rownames(l[[x]])[lsum[[x]]>=16])
+lprot <- lapply(1:length(l), function(x) rownames(l[[x]])[l3[[x]]==4])
 kable(data.frame("Cellular compartment" = names(l), "Number of proteins detected" = sapply(lprot, length)))
 #venn(lprot)
 venn(list("cytoplasm" = lprot[[1]], "mycomembrane" = lprot[[2]], "plasma membrane" = lprot[[3]], "secretome" = lprot[[4]]))
