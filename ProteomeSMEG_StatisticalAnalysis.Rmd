@@ -36,8 +36,16 @@ load("Data/Data01.Rdata")
 
 # ANOVA
 
-I remove from the matrix the rows with only missing values:
+I create a matrix with the "present/absent" information:
+
 ```{r}
+matpa <- export[,substr(names(export), 1, 2)=="In"]
+```
+
+I remove from the matrix the rows with only missing values:
+  
+```{r}
+matpa <- matpa[sapply(1:nrow(mat), function(x) {length(mat[x,][is.na(mat[x,])])})<ncol(mat),]
 mat <- mat[sapply(1:nrow(mat), function(x) {length(mat[x,][is.na(mat[x,])])})<ncol(mat),]
 colnames(mat) <- sub("_woMissingVal", "", colnames(mat))
 ```
@@ -45,7 +53,7 @@ colnames(mat) <- sub("_woMissingVal", "", colnames(mat))
 For each protein in the table, I perform an anova:
 ```{r, eval = F}
 matmean <- matrix(ncol = 4, nrow = nrow(mat))
-colnames(matmean) <- sort(unique(substr(rownames(mattemp), 1, 2)))
+colnames(matmean) <- sort(unique(substr(colnames(mat), 1, 2)))
 rownames(matmean) <- rownames(mat)
 
 vecpval <- vector(length = nrow(mat))
@@ -80,6 +88,13 @@ for (i in 1:nrow(mat)) {
     print("error")
   }
 }
+# Remove the Diff et pTuk values when the protein is not detected in all the biological replicates in both compartments compared:
+correspondance <- data.frame("column" = 1:ncol(matDiff), "Comp1" = c(1, 2, 2, 3, 3, 3), "Comp2" = c(4,4,1,4,1,2))
+for (i in 1:ncol(matDiff)) {
+  matDiff[matpa[,correspondance[i,2]]==0 & matpa[,correspondance[i,3]]==0,i] <- NA 
+  matpTukey[matpa[,correspondance[i,2]]==0 & matpa[,correspondance[i,3]]==0,i] <- NA
+}
+
 save(list = c("matmean", "matDiff", "matpTukey", "vecpval"), file = "Data/Data02.Rdata")
 ```
 
@@ -97,15 +112,24 @@ tabprotLaura <- read.table("RAW/ProteinOfInterest_20171013.txt", sep = "\t", hea
 ```
 
 ```{r}
+# Change names of columns of matpa:
+colnames(matpa) <- c("CP", "CW", "MP", "CF")
+```
+
+```{r}
 for (i in 1:ncol(matDiff)) {
   gtab <- data.frame("Diff"=matDiff[,i], "pTukey"=matpTukey[,i])
+  vectemp <- strsplit(colnames(matDiff)[i], "-")[[1]]
+  gtab$Detection <- ifelse((matpa[,colnames(matpa)==vectemp[1]]==0 | matpa[,colnames(matpa)==vectemp[2]]==0), "Absent in one condition", "Present")
   gtab$Gene <- tabprotLaura$GeneNameLaura[match(rownames(gtab), tabprotLaura$accession)]
   gtab$col <- ifelse(!is.na(gtab$Gene), "Regulated", "Not regulated")
   vec <- tabprotLaura$Comments[match(gtab$Gene, tabprotLaura$GeneNameLaura)]
   gtab$col[vec=="FasII"] <-  "FasII"
+  
   gtab <- gtab[order(gtab$col),]
   ti <- colnames(matDiff)[i]
-  g <- ggplot(gtab, aes(x = Diff, y = -log10(pTukey), col = col, label = Gene)) + geom_point(alpha = 0.6) + ggtitle(ti) + geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + theme_bw() + scale_color_manual(values = c("red", "grey80", "dodgerblue4")) + geom_text_repel()
+  #g <- ggplot(gtab, aes(x = Diff, y = -log10(pTukey), col = col, label = Gene)) + geom_point(alpha = 0.6) + ggtitle(ti) + geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + theme_bw() + scale_color_manual(values = c("red", "grey80", "dodgerblue4")) + geom_text_repel()
+  g <- ggplot(subset(gtab, gtab$Detection=="Present"), aes(x = Diff, y = -log10(pTukey), col = col, label = Gene)) + geom_point(data = subset(gtab, gtab$Detection=="Absent in one condition"), aes(x = Diff, y = -log10(pTukey)), col = "mediumaquamarine", alpha = 0.6)  + geom_point(alpha = 0.6) + ggtitle(ti) + geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + theme_bw() + scale_color_manual(values = c("red", "grey80", "dodgerblue4")) + geom_text_repel()
   print(g)
 }
 ```
