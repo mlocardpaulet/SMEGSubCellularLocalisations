@@ -184,6 +184,15 @@ write.table(input$description[match(secprot, input$accession)], "Output/cytoplas
 
 The lists of proteins identified in the compartments are saved in "Output/"
 
+I also add columns in the input table: one column per compartment: 1: detected in all biological replicates; 0: not detected in all biological replicates.
+
+```{r}
+input$"InCytoplasm" <- ifelse(l3$"cytoplasm"==4, 1, 0)
+input$"InMycomembrane" <- ifelse(l3$"mycomembrane"==4, 1, 0)
+input$"InPlasmaMembrane" <- ifelse(l3$"plasma membrane"==4, 1, 0)
+input$"InSecretome" <- ifelse(l3$"secretome"==4, 1, 0)
+```
+
 # Data export
 
 I export the data in "Data\"
