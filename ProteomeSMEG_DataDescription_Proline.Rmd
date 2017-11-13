@@ -1,0 +1,227 @@
+---
+title: "Proteomic analysis SMEG"
+author: "Marie Locard-Paulet"
+date: '`r date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r, message=F}
+require(ggplot2)
+require(corrplot)
+require(gplots)
+require(knitr)
+```
+
+```{r}
+# Create colour function for the heatmap:
+
+colvec <- c("darkgreen", "yellow", "red")
+pal <- colorRampPalette(colvec)
+
+```
+
+# Data input
+
+Input: "RAW/Quantified proteins 290917.txt"
+I have replaced the "#", "'" and tab in the excel file (Proline export) before saving in tab-delimited format.
+
+**There are rows with no values in the abundance.**
+
+```{r, echo = T}
+input <- read.table("RAW/Proline/Quantified proteins_09-11-2017_1057.txt", header = T, sep = "\t")
+mapping <- read.table("RAW/Quantified proteins 290917_Mapping.txt", header = T, sep = "\t")
+mapping$Label <- paste0(mapping$cellular.compartment, "-", mapping$biological.replicate, "-", mapping$technical.replicate)
+kable(mapping)
+```
+
+I keep the columns "abundance" from the Proline table.
+
+```{r}
+mat <- input[,c(2,which(grepl("abundance", names(input))))]
+mat <- mat[,which(!grepl("raw_", names(mat)))]
+na <- mat[,1]
+mat <- as.matrix(mat[,2:ncol(mat)])
+row.names(mat) <- na
+colnames(mat) <- sub("abundance_Laura.", "", colnames(mat))
+
+# Create colour matrix for the figures:
+colgroups <- c("brown3", "deepskyblue", "tomato", "slateblue3")
+matcol <- cbind(colgroups, unique(substr(colnames(mat), 1, 2)), as.character(mapping$cellular.compartment[match(unique(substr(colnames(mat), 1, 2)), substr(mapping$Sample.name, 1, 2))]))
+```
+
+# Data cleaning
+
+I do not remove the abundance values when no "psm_count". We want to analyse the results filtered by David's algo.
+
+```{r, eval=T}
+# matrix with the number of ms/ms per prot per sample:
+matpsm <- input[,c(2,which(grepl("psm_count", names(input))))]
+matpsm <- as.matrix(matpsm[,2:ncol(matpsm)])
+# Remove abundance values for cells with psm count == 0 or NA:
+```
+
+```{r}
+histinfo <- hist(log(mat), main = "Log intensities, in red the ones removed")
+hist(log(mat[matpsm==0 | is.na(matpsm)]), add = T, col = "red")
+
+### To remove the values with no msms
+
+l <- length(mat[matpsm==0 | is.na(matpsm)])
+#mat[matpsm==0 | is.na(matpsm)] <- NA
+#hist(log(mat), main = "Log intensities from identified ions only", col = "steelblue", xlim = c(min(histinfo$breaks),max(histinfo$breaks)))
+```
+
+There are `r l` values with NAs or 0 psm_count.
+
+```{r, eval = F}
+image(log(mat))
+```
+
+# Quality control
+
+
+```{r, eval = F}
+# Pairwise plots:
+pairs(log(mat[,1:16]), pch = ".", main = "plasma membrane")
+pairs(log(mat[,17:32]), pch = ".", main = "secretome")
+pairs(log(mat[,33:48]), pch = ".", main = "mycomembrane")
+pairs(log(mat[,49:64]), pch = ".", main = "cytoplasm")
+```
+
+```{r}
+boxplot(log2(mat), las = 2, cex = 0.4, cex.axis = 0.5, main = "log2-transformed abundance across runs")
+```
+
+*The normalisation has been performed by compartment, which explains the difference observed between the medians of each group.*
+
+# Data centering
+
+Normalisation of the samples using the median (on the log-2 transformed data).
+
+```{r}
+mat <- log2(mat)
+
+mat <- scale(mat, center = T, scale = F)
+
+boxplot(mat, las = 2, cex = 0.4, cex.axis = 0.5, main = "log2-transformed abundance across runs after normalisation to the median")
+```
+
+## Correlation analysis on the data with no missing values
+
+
+```{r}
+M <- cor(mat[complete.cases(mat),])
+corrplot(M, method="color", tl.col = "black", tl.cex = 0.5, mar = c(1,1,1,1), order = "hclust")
+par(mar = c(8,2,4,1))
+
+# Heatmap:
+heatmap.2(mat[complete.cases(mat),], trace = "none", labRow = FALSE, ColSideColors = matcol[match(substr(colnames(mat), 1, 2), matcol[,2]),1], col = pal(300))
+```
+
+## PCA analysis on the data with no missing values
+
+I center the data.
+
+```{r}
+pca <- prcomp(mat[complete.cases(mat),], center = T, scale = F)
+
+tab <- summary(pca)
+kable(tab$importance[,1:3])
+
+gtab <- pca$rotation
+gtab <- as.data.frame(gtab)
+gtab$Condition <- mapping$cellular.compartment[match(sub("abundance_Laura.", "", colnames(mat)), mapping$Sample.name)]
+gtab$Replicate <- mapping$biological.replicate[match(sub("abundance_Laura.", "", colnames(mat)), mapping$Sample.name)]
+gtab$Replicate <- as.character(gtab$Replicate)
+
+ggplot(gtab, aes(x = PC1, y = PC2, col = Condition, label = Replicate, shape = Replicate)) + theme_bw() + geom_point() + scale_colour_manual(values = matcol[match(matcol[,3],levels(gtab$Condition)),1])
+```
+
+# Identities of the proteins detected in the cell compartments
+
+Proteins are detected in a compartment if these have a detected abundance in a minimum of one biological replicate.
+
+Venn diagrams:
+
+```{r}
+# Make list with one matrix per compartment:
+cellcomp <- sort(unique(as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)])))
+l <- lapply(cellcomp, function(x) {
+  mat[,as.character(mapping$cellular.compartment[match(colnames(mat), mapping$Sample.name)])==x]
+})
+names(l) <- cellcomp
+# Replace values per 1 if present:
+l2 <- l
+for (i in seq_along(l)) {
+  temp <- l2[[i]] 
+  temp[!is.na(temp)] <- 1
+  l2[[i]] <- temp
+}
+# Subset the matrices per biological replicate:
+l3 <- l2
+for (i in seq_along(l2)) {
+  ltemp <- lapply(1:4, function(x) {
+    l2[[i]][,as.character(mapping$biological.replicate[match(colnames(l2[[i]]), mapping$Sample.name)])==x]
+  }) 
+  temp <- sapply(ltemp, rowSums, na.rm = T)
+  temp[temp>=1] <- 1
+  l3[[i]] <- rowSums(temp)
+}
+
+lprot <- lapply(1:length(l), function(x) rownames(l[[x]])[l3[[x]]>=1])
+kable(data.frame("Cellular compartment" = names(l), "Number of proteins detected" = sapply(lprot, length)))
+#venn(lprot)
+venn(list("cytoplasm" = lprot[[1]], "mycomembrane" = lprot[[2]], "plasma membrane" = lprot[[3]], "secretome" = lprot[[4]]))
+
+int <- intersect(lprot[[1]], lprot[[2]])
+int <- intersect(lprot[[3]], int)
+int <- intersect(lprot[[4]], int)
+
+
+boxplot(mat[rownames(mat) %in% int,], las = 2, main = "Proteins common to the 4 compartments", cex = 0.4, cex.axis = 0.5)
+heatmap.2(scale(mat[rownames(mat) %in% int,], center = T, scale = F), labRow = FALSE, ColSideColors = matcol[match(substr(colnames(mat), 1, 2), matcol[,2]),1], col = pal(300), trace = "none")
+
+secprot <- setdiff(lprot[[4]], lprot[[1]])
+secprot <- setdiff(secprot, lprot[[2]])
+secprot <- setdiff(secprot, lprot[[3]])
+write.table(input$description[match(secprot, input$accession)], "Output/Proline/secretome.txt", sep = "\t")
+secprot <- setdiff(lprot[[2]], lprot[[1]])
+secprot <- setdiff(secprot, lprot[[3]])
+secprot <- setdiff(secprot, lprot[[4]])
+write.table(input$description[match(secprot, input$accession)], "Output/Proline/mycomembrane.txt", sep = "\t")
+secprot <- setdiff(lprot[[3]], lprot[[1]])
+secprot <- setdiff(secprot, lprot[[2]])
+secprot <- setdiff(secprot, lprot[[4]])
+write.table(input$description[match(secprot, input$accession)], "Output/Proline/plasmaMembrane.txt", sep = "\t")
+secprot <- setdiff(lprot[[1]], lprot[[3]])
+secprot <- setdiff(secprot, lprot[[2]])
+secprot <- setdiff(secprot, lprot[[4]])
+write.table(input$description[match(secprot, input$accession)], "Output/Proline/cytoplasm.txt", sep = "\t")
+```
+
+The lists of proteins identified in the compartments are saved in "Output/Proline/"
+
+I also add columns in the input table: one column per compartment: 1: detected in all biological replicates; 0: not detected in all biological replicates.
+
+```{r}
+input$"InCytoplasm" <- ifelse(l3$"cytoplasm"==4, 1, 0)
+input$"InMycomembrane" <- ifelse(l3$"mycomembrane"==4, 1, 0)
+input$"InPlasmaMembrane" <- ifelse(l3$"plasma membrane"==4, 1, 0)
+input$"InSecretome" <- ifelse(l3$"secretome"==4, 1, 0)
+```
+
+# Data export
+
+I export the data in "Data\"
+
+```{r, echo=T}
+save(list = c("input", "mat", "mapping", "matcol"), file = "Data/Proline/Data00.Rdata")
+```
+
+```{r}
+sessionInfo()
+```
