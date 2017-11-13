@@ -103,9 +103,18 @@ boxplot(log2(mat), las = 2, cex = 0.4, cex.axis = 0.5, main = "log2-transformed 
 Normalisation of the samples using the median (on the log-2 transformed data).
 
 ```{r}
+matRaw <- mat
 mat <- log2(mat)
 
-mat <- scale(mat, center = T, scale = F)
+#mat <- scale(mat, center = T, scale = F)
+# apply normalisation factor:
+med <- sapply(1:ncol(mat), function(x) {
+  median(mat[,x], na.rm = T)
+})
+normval <- med-median(med)
+for (i in 1:ncol(mat)) {
+  mat[,i] <- mat[,i]-normval[i]
+}
 
 boxplot(mat, las = 2, cex = 0.4, cex.axis = 0.5, main = "log2-transformed abundance across runs after normalisation to the median")
 ```
@@ -219,7 +228,7 @@ input$"InSecretome" <- ifelse(l3$"secretome"==4, 1, 0)
 I export the data in "Data\"
 
 ```{r, echo=T}
-save(list = c("input", "mat", "mapping", "matcol"), file = "Data/Proline/Data00.Rdata")
+save(list = c("input", "mat", "mapping", "matcol", "matRaw"), file = "Data/Proline/Data00.Rdata")
 ```
 
 ```{r}
