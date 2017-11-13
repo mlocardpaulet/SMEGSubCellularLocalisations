@@ -31,7 +31,7 @@ mlpplot90 <- function(plot) {
 ```
 
 ```{r, echo=T}
-load("Data/Data01.Rdata")
+load("Data/Proline/Data01.Rdata")
 ```
 
 # ANOVA
@@ -95,11 +95,11 @@ for (i in 1:ncol(matDiff)) {
   matpTukey[matpa[,correspondance[i,2]]==0 & matpa[,correspondance[i,3]]==0,i] <- NA
 }
 
-save(list = c("matmean", "matDiff", "matpTukey", "vecpval"), file = "Data/Data02.Rdata")
+save(list = c("matmean", "matDiff", "matpTukey", "vecpval"), file = "Data/Proline/Data02.Rdata")
 ```
 
 ```{r}
-load(file = "Data/Data02.Rdata")
+load(file = "Data/Proline/Data02.Rdata")
 ```
 
 Volcano plot per comparison:
@@ -145,8 +145,15 @@ mattot <- cbind(matmean, matDiff, "pvalAnova" = vecpval, matpTukey)
 mattot <- cbind(mattot, "accession"=rownames(mattot))
 export <- merge(export, mattot, by = "accession", all = T)
 
-write.table(export, row.names = F, "Output/ExportedTableAfterStat.txt", sep = "\t")
-save(list = c("export", "mapping", "mattot"), file = "Data/Data03.Rdata")
+write.table(export, row.names = F, "Output/Proline/ExportedTableAfterStat.txt", sep = "\t")
+save(list = c("export", "mapping", "mattot"), file = "Data/Proline/Data03.Rdata")
+```
+
+```{r}
+
+M <- cor(export[export$accession %in% tabprotLaura$accession,grepl("_woMissingVal", names(export))])
+corrplot(M, method="color", tl.col = "black", tl.cex = 0.5, mar = c(1,1,1,1), order = "hclust")
+
 ```
 
 # Heatmap of proteins of interest
@@ -165,6 +172,26 @@ colnames(hm2) <- sub("_MeanTech", "", colnames(hm2))
 fasII <- ifelse(hm$FasII=="FasII", 2, 1)
 heatmap.2(scale(hm2, center = F, scale = F), ColSideColors = matcol[match(substr(colnames(mat), 1, 2), matcol[,2]),1], col = pal(300), trace = "none", mar = c(4,13), breaks = c(0, seq(from = 10, to = 35, length.out = 300)), colRow = fasII)
 ```
+
+```{r}
+library(heatmaply)
+require(dplyr)
+
+hm <- export[as.numeric(as.character(export$`MP-CW_pTukey`))<=0.01 & abs(as.numeric(as.character(export$`MP-CW_Diff`)))>=2,grepl("_woMissingVal", names(export))]
+hm$accession <- export$accession[as.numeric(as.character(export$`MP-CW_pTukey`))<=0.01 & abs(as.numeric(as.character(export$`MP-CW_Diff`)))>=2]
+hm <- hm[!is.na(hm[,1]),]
+
+hm$gene <- export$gene_name[match(hm$accession, as.character(export$accession))]
+
+hm2 <- as.matrix(hm[,1:16])
+rownames(hm2) <- hm$gene
+hm2[is.na(hm2)] <- 0
+colnames(hm2) <- sub("_woMissingVal", "", colnames(hm2))
+hm2 <- hm2[,grepl("MP", colnames(hm2)) | grepl("CW", colnames(hm2))]
+heatmap.2(hm2, ColSideColors = matcol[match(substr(colnames(hm2), 1, 2), matcol[,2]),1], col = pal(300), trace = "none", mar = c(4,13), breaks = c(0, seq(from = 10, to = 35, length.out = 300)), cexRow = 0.1)
+```
+
+
 
 *******************************************************************************
 ```{r}
