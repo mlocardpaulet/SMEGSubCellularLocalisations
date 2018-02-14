@@ -31,7 +31,7 @@ mlpplot90 <- function(plot) {
 ```
 
 ```{r, echo=T}
-load("Data/Proline/Data01.Rdata")
+load("Data/Data01.Rdata")
 ```
 
 # ANOVA
@@ -95,11 +95,11 @@ for (i in 1:ncol(matDiff)) {
   matpTukey[matpa[,correspondance[i,2]]==0 & matpa[,correspondance[i,3]]==0,i] <- NA
 }
 
-save(list = c("matmean", "matDiff", "matpTukey", "vecpval"), file = "Data/Proline/Data02.Rdata")
+save(list = c("matmean", "matDiff", "matpTukey", "vecpval"), file = "Data/Data02.Rdata")
 ```
 
 ```{r}
-load(file = "Data/Proline/Data02.Rdata")
+load(file = "Data/Data02.Rdata")
 ```
 
 Volcano plot per comparison:
@@ -145,8 +145,8 @@ mattot <- cbind(matmean, matDiff, "pvalAnova" = vecpval, matpTukey)
 mattot <- cbind(mattot, "accession"=rownames(mattot))
 export <- merge(export, mattot, by = "accession", all = T)
 
-write.table(export, row.names = F, "Output/Proline/ExportedTableAfterStat.txt", sep = "\t")
-save(list = c("export", "mapping", "mattot"), file = "Data/Proline/Data03.Rdata")
+write.table(export, row.names = F, "Output/ExportedTableAfterStat.txt", sep = "\t")
+save(list = c("export", "mapping", "mattot"), file = "Data/Data03.Rdata")
 ```
 
 ```{r}
