@@ -26,13 +26,13 @@ pal <- colorRampPalette(colvec)
 
 # Data input
 
-Input: "RAW/Quantified proteins 290917.txt"
+Input: "RAW/Protein_sets_20180214.tsv"
 I have replaced the "#", "'" and tab in the excel file (Proline export) before saving in tab-delimited format.
 
 **There are rows with no values in the abundance.**
 
 ```{r, echo = T}
-input <- read.table("RAW/Quantified proteins 290917.txt", header = T, sep = "\t")
+input <- read.table("RAW/Protein_sets_20180214.tsv", header = T, sep = "\t")
 mapping <- read.table("RAW/Quantified proteins 290917_Mapping.txt", header = T, sep = "\t")
 mapping$Label <- paste0(mapping$cellular.compartment, "-", mapping$biological.replicate, "-", mapping$technical.replicate)
 kable(mapping)
@@ -81,10 +81,10 @@ image(log(mat))
 
 ```{r, eval = F}
 # Pairwise plots:
-pairs(log(mat[,1:16]), pch = ".", main = "plasma membrane")
-pairs(log(mat[,17:32]), pch = ".", main = "secretome")
-pairs(log(mat[,33:48]), pch = ".", main = "mycomembrane")
-pairs(log(mat[,49:64]), pch = ".", main = "cytoplasm")
+pairs(log(mat[,substr(colnames(mat), 1, 2)=="MP"]), pch = ".", main = "plasma membrane")
+pairs(log(mat[,substr(colnames(mat), 1, 2)=="CF"]), pch = ".", main = "secretome")
+pairs(log(mat[,substr(colnames(mat), 1, 2)=="CW"]), pch = ".", main = "mycomembrane")
+pairs(log(mat[,substr(colnames(mat), 1, 2)=="CP"]), pch = ".", main = "cytoplasm")
 ```
 
 ```{r}
