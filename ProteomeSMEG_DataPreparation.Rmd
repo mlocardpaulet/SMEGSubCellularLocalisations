@@ -35,6 +35,12 @@ load("Data/Data00.Rdata")
 
 # Data normalisation 
 
+I remove the proteins with 1 or less unique peptide:
+
+```{r}
+mat[input$specific_peptides<=1,] <- NA
+```
+
 1/ Log2-transform the matrix
 
 ```{r}
@@ -120,7 +126,10 @@ k <- sapply(1:nrow(mat), function(x) length(mat[x,][is.na(mat[x,])]))
 ProtMV <- rownames(mat)[k==ncol(mat)]
 ```
 
-It concerns `r length(ProtMV)`
+It concerns `r length(ProtMV)`.
+
+
+I replace ce missing values with the 1\% quantile per biological replicate.
 
 ```{r}
 gtab <- melt(mat)
