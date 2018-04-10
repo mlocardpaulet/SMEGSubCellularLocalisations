@@ -1,0 +1,47 @@
+---
+title: "Proteomic analysis SMEG"
+author: "Marie Locard-Paulet"
+date: '`r date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r, message=F}
+require(ggplot2)
+require(corrplot)
+require(gplots)
+require(knitr)
+
+#source("https://bioconductor.org/biocLite.R")
+#biocLite(c("MSnbase", "pRoloc", "pRolocdata", "pRolocGUI"))
+require(MSnbase)
+```
+
+
+```{r}
+load("Data/Data03.Rdata")
+```
+
+I load the data before stat (technical repeats aggregated and missing values replaced).
+
+```{r}
+hl <- readMSnSet2(export, ecol = 527:542, fnames = 1)
+exprs(hl)[1:5, ]
+
+fvarLabels(hl)
+tab <- read.table("RAW/Quantified proteins 290917_Mapping.txt", sep = "\t", header = T)
+tab[,1] <- gsub("_[123456]", "_woMissingVal", tab[,1])
+tab <- tab[,-4]
+tab <- tab[!duplicated(tab),]
+
+pData(hl) <- tab
+
+hl <- normalise(hl, method = "sum")
+```
+
+```{r}
+sessionInfo()
+```
