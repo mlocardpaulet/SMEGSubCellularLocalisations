@@ -26,13 +26,13 @@ pal <- colorRampPalette(colvec)
 
 # Data input
 
-Input: "RAW/Protein_sets_20180214.tsv"
+Input: `RAW/Msm - CP _ PM _ MMCW _ SP - 20180309_10-04-2018_0922/Protein sets.tsv`
 I have replaced the "#", "'" and tab in the excel file (Proline export) before saving in tab-delimited format.
 
 **There are rows with no values in the abundance.**
 
 ```{r, echo = T}
-input <- read.table("RAW/Protein_sets_20180214.tsv", header = T, sep = "\t")
+input <- read.table("RAW/Msm - CP _ PM _ MMCW _ SP - 20180309_10-04-2018_0922/Protein sets.tsv", header = T, sep = "\t")
 mapping <- read.table("RAW/Quantified proteins 290917_Mapping.txt", header = T, sep = "\t")
 mapping$Label <- paste0(mapping$cellular.compartment, "-", mapping$biological.replicate, "-", mapping$technical.replicate)
 kable(mapping)
@@ -91,7 +91,6 @@ pairs(log(mat[,substr(colnames(mat), 1, 2)=="CP"]), pch = ".", main = "cytoplasm
 boxplot(log(mat), las = 2, cex = 0.4, cex.axis = 0.5, main = "log-transformed abundance across runs")
 ```
 
-*There is a bias in the normalisation because it was performed in Proline with the data from match between run. More specifically, the median of the "CF" condition is higher than the other cellular compartments.*
 
 ## Correlation analysis on the data with no missing values
 
