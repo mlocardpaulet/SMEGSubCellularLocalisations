@@ -35,87 +35,7 @@ naval <- sapply(seq_len(nrow(mat)), function(x) {
 export <- export[naval == 0,]
 ```
 
-# With our imputation of missing values:
-
-I create 4 independent MSnet objects to normalise the biological repeats independently.
-
-```{r}
-# The order of the columns is important when creating the MSnet object:
-coln1 <- c(1,5,9,13)+526
-coln2 <- coln1+1
-coln3 <- coln1+2
-coln4 <- coln1+3
-
-coln <- c(coln1, coln2, coln3, coln4)
-# The name of the columns has to be the condition . the replicate:
-names(export)[coln] <- gsub("[1234]_woMissingVal", "", names(export)[coln])
-names(export)[coln] <- paste0(names(export)[coln], ".", rep(c(1,2,3,4), each = 4))
-
-hl1 <- readMSnSet2(export, ecol = coln1, fnames = 1)
-head(exprs(hl1))
-hl2 <- readMSnSet2(export, ecol = coln2, fnames = 1)
-head(exprs(hl2))
-hl3 <- readMSnSet2(export, ecol = coln3, fnames = 1)
-head(exprs(hl3))
-hl4 <- readMSnSet2(export, ecol = coln4, fnames = 1)
-head(exprs(hl4))
-
-# Normalisation:
-hl1 <- normalise(hl1, method = "sum")
-hl2 <- normalise(hl2, method = "sum")
-hl3 <- normalise(hl3, method = "sum")
-hl4 <- normalise(hl4, method = "sum")
-```
-
-After normalisation, I combine the data:
-
-```{r}
-# Combine the data:
-hl <- combine(hl1, hl2, hl3, hl4)
-```
-
-I annotate the data:
-
-```{r}
-# Annotate the data:
-#fvarLabels(hl)
-tab <- read.table("RAW/Quantified proteins 290917_Mapping.txt", sep = "\t", header = T)
-tab[,1] <- gsub("_[123456]", "_woMissingVal", tab[,1])
-tab <- tab[,-4]
-tab <- tab[!duplicated(tab),]
-names(tab)[3] <- "Replicate"
-names(tab)[2] <- "Gradient.Fraction"
-tab <- tab[order(tab$Replicate),]
-tab$Sample.name <- gsub("[1234]_woMissingVal", "", tab$Sample.name)
-tab$Sample.name <- paste0(tab$Sample.name, ".", rep(c(1,2,3,4), each = 4))
-row.names(tab) <- tab$Sample.name # This is essential.
-tab <- tab[,c(3,1,2)]
-pData(hl) <- tab
-```
-
-I have already imputed the missing data so I don't do it again. I may want to try with data before replacement of missing data and use the MSbase algo.
-
-```{r}
-par(mfrow = c(1, 2), ## creates a two-panel figure
-    las = 2, ## axis labels orientation
-    cex.axis = .7) ## axis label size
-o <- order(hl$Sample.name)
-plotDist(hl[, o], pcol = "#00000010", xlab = "")
-lines(colMeans(exprs(hl[, o])), col = "red", type = "b")
-boxplot(exprs(hl[, o]))
-
-plot2D(hl, fcol = NULL, col = "black")
-plot2D(hl, method = "hexbin")
-```
-
-The "lines" observed in the PCA may be due to the replacement of missing values (I didn't introduce variability when imputing it).
-
-================================================================================
-
-# With imputation of missing values using knn algo.:
-
-
-I create 4 independent MSnet objects to normalise the biological repeats independently.
+I create 4 independent MSnet objects with the mean of the log2-transformed normalised values of the technical repeats.
 
 ```{r}
 # The order of the columns is important when creating the MSnet object:
@@ -137,47 +57,46 @@ hl3 <- readMSnSet2(export, ecol = coln3, fnames = 1)
 head(exprs(hl3))
 hl4 <- readMSnSet2(export, ecol = coln4, fnames = 1)
 head(exprs(hl4))
-
-# Normalisation:
-#hl1 <- normalise(hl1, method = "sum")
-#hl2 <- normalise(hl2, method = "sum")
-#hl3 <- normalise(hl3, method = "sum")
-#hl4 <- normalise(hl4, method = "sum")
 ```
 
-Imputation of missing values:
+I impute the missing values with a noise drawn around the 5\% quantile and a standard deviation estimated from the technical variation of the proteins in the 10\% less intense.
 
 ```{r}
 lhl <- list(hl1, hl2, hl3, hl4)
 
-matCV <- export[,grepl("CVTech", names(export))]
-medCV <- sapply(seq_len(ncol(matCV)), function(x) {
-  median(matCV[,x], na.rm = T)
+# Determining the standard deviation and noise for imputing the missing values:
+lstdev <- lapply(lhl, function(x) {
+  sapply(1:nrow(as.matrix(exprs(x))), function(y) {
+    sd(as.matrix(exprs(x))[y,])
+  })
 })
-medCV <- medCV[c(c(1,5,9,13), c(1,5,9,13)+1, c(1,5,9,13)+2, c(1,5,9,13)+3)]
+matdev <- cbind(lstdev[[1]], lstdev[[2]], lstdev[[3]], lstdev[[4]])
+
+matmean <- export[,grepl("_Mean", names(export))]
+matmean <- apply(as.matrix(matmean), 2, as.numeric)
+# Remove replacement of missing values in the stat table:
+mv <- as.numeric(names(sort(table(matmean), decreasing = T)[1:4]))
+matmean[matmean %in% mv] <- NA
+valmean <- rowMeans(matmean, na.rm = T)
+cutoff <- quantile(valmean, 0.1)
+matdev <- matdev[valmean <= cutoff,]
+meddev <- median(as.matrix(matdev), na.rm = T)
+
+matval <- cbind(as.matrix(exprs(lhl[[1]])), as.matrix(exprs(lhl[[2]])), as.matrix(exprs(lhl[[3]])), as.matrix(exprs(lhl[[4]])))
+noise <- quantile(matval[!is.na(matval)], 0.01)
+stdev <- meddev
 
 for (i in seq_along(lhl)) {
-   l <- as.matrix(exprs(lhl[[i]]))
-  # l <- lhl[[i]]
+  l <- as.matrix(exprs(lhl[[i]]))
   image2(l, main = paste0("Replicate ", i, " before normalisation"))
-  # l <- impute(l, method = "QRILC")
-
   # Impute missing value:
-   #vec <- sapply(seq_len(ncol(l)), function(x) {
-  #   quantile(l[,x][!is.na(l[,x])], probs = 0.05) # Replace around 5% quantile
-  # })
-  val <- quantile(l[!is.na(l)], probs = 0.01) # Replace around 1% quantile
-  # for (j in seq_len(ncol(l))) {
-  #   vec2 <- l[,j]
-  #   vrep <- runif(length(l[,j][is.na(l[,j])]),(vec[j]-(medCV[j]*vec[j])),vec[j]+(medCV[j]*vec[j]))
-     vrep <- runif(length(l),(val-(mean(medCV)*val)),val+(mean(medCV)*val))
-  #   vec2[is.na(vec2)] <- vrep
-     l[is.na(l)] <- vrep[is.na(l)]
-   #}
-   exprs(lhl[[i]]) <- l
-   l <- lhl[[i]]
-    # Normalisation:
+  vrep <- runif(length(l),(noise-stdev),noise+stdev)
+  l[is.na(l)] <- vrep[is.na(l)]
+  exprs(lhl[[i]]) <- l
+  l <- lhl[[i]]
+  # Normalisation:
   l <- normalise(l, method = "sum")
+  
   image2(l, 
         main = paste0("Replicate ", i, ": Values after normalisation and imputation of missing values"))
   plot2D(l, fcol = NULL, col = "black")
@@ -226,31 +145,86 @@ plot2D(hl, fcol = NULL, col = "black")
 plot2D(hl, method = "hexbin")
 ```
 
-## Add markers
+# Add markers
 
-I use the table
+
+## What are the lines on the plot?
+
+I extract from the stat table the proteins that are specific of a compartment and label them on the plot.
 
 ```{r}
-markertab <- read.table("LOPIT/Copie de protéines marqueurs LOPIT.txt", header = T, stringsAsFactors = F, sep = "\t")
-markers <- markertab$localisation
-names(markers) <- markertab$accession
+matval <- export[,substr(x = names(export), 1, 2) == "In"]
+vec <- rep(NA, nrow(matval))
+rs <- rowSums(matval)
+for (i in seq_len(nrow(matval))) {
+  vec[matval[,1]==1 & rs == 1] <- "Cytoplasm"
+  vec[matval[,2]==1 & rs == 1] <- "Mycomembrane"
+  vec[matval[,3]==1 & rs == 1] <- "PlasmaMembrane"
+  vec[matval[,4]==1 & rs == 1] <- "Secretome"
+}
+names(vec) <- export[,1]
+vec <- vec[!is.na(vec)]
+
+markers <- vec
 
 hl <- addMarkers(hl, markers)
 par(mfrow = c(1, 2))
-plot2D(hl, main = "pRolocmarkers for mouse")
+plot2D(hl, main = "pRolocmarkers from present/absent proteins")
 addLegend(hl, cex = .6)
-plot2D(hl, dims = c(1, 3), main = "Marker resolution along PC 1 and 7")
+plot2D(hl, dims = c(1, 3), main = "PC1 Vs PC3")
 #plot3D(hl)
 
 par(xpd=TRUE, mar = c(4,4,4,16), mfrow = c(1,1))
 hlo <- hl[, order(hl$Sample.name)]
-col <- c("blueviolet", "darkblue", "aquamarine2", "darkgreen")
+col <- c("orange", "red", "forestgreen", "blue")
 plotDist(hlo[fData(hlo)$markers == unique(markers)[1],], pcol = col[1], fractions = "Sample.name")
 title(main = "Marker occupancy profiles along the gradient")
 for (i in 1:length(unique(markers))) {
   matlines(t(exprs(hlo[fData(hlo)$markers == unique(markers)[i], ])), lty = 1, col = col[i], type = "l")
 }
 legend(17, 0.3, unique(markers), lty = 1, col = col, bty = "n")
+```
+
+
+## Use markers specific for cellular compartments 
+
+
+I use the table from Laura, it is in the LOPIT folder.
+
+```{r}
+markersPresAbs <- markers
+markersPresAbs <- paste0(markersPresAbs, "-FromDataSet")
+names(markersPresAbs) <- names(markers)
+fData(hl)$markers <- NULL
+
+markertab <- read.table("LOPIT/Copie de protéines marqueurs LOPIT.txt", header = T, stringsAsFactors = F, sep = "\t")
+markers <- markertab$localisation
+markers[markers == "MycoMembrane - CW"] <- "Mycomembrane"
+markers[markers == "Plasma Mb - PM"] <- "PlasmaMembrane"
+markers[markers == "Cytosol Periplasm - CP"] <- "Cytoplasm"
+markers[markers == "secreted protein - CF"] <- "Secretome"
+names(markers) <- markertab$accession
+
+markers2 <- c(markers, markersPresAbs)
+markers2 <- markers2[!duplicated(names(markers2))]
+
+hl <- addMarkers(hl, markers2)
+par(mfrow = c(1, 2))
+plot2D(hl, main = "pRolocmarkers for mouse", col = getStockcol()[c(1,4,2,7,3,11,10,9)])
+addLegend(hl, cex = .6, col = getStockcol()[c(1,4,2,7,3,11,10,9)])
+plot2D(hl, dims = c(1, 3), main = "Marker resolution along PC 1 and 7", col = getStockcol()[c(1,4,2,7,3,11,10,9)])
+#plot3D(hl)
+
+par(xpd=TRUE, mar = c(4,4,4,16), mfrow = c(1,1))
+hlo <- hl[, order(hl$Sample.name)]
+#col <- c("blueviolet", "darkblue", "red", "gold")
+col <- getStockcol()[c(1,4,2,7,3,11,10,9)][c(3,5,1,7)]
+plotDist(hlo[fData(hlo)$markers == unique(markers)[1],], pcol = col[1], fractions = "Sample.name")
+title(main = "Marker occupancy profiles along the gradient")
+for (i in 1:length(unique(markers))) {
+  matlines(t(exprs(hlo[fData(hlo)$markers == unique(markers)[i], ])), lty = 1, col = col[i], type = "l")
+}
+legend(17, 0.3, unique(markers2), lty = 1, col = col, bty = "n")
 ```
 
 
