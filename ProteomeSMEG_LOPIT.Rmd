@@ -17,6 +17,8 @@ require(knitr)
 #biocLite(c("MSnbase", "pRoloc", "pRolocdata", "pRolocGUI"))
 require(MSnbase)
 require(pRoloc)
+
+source("RFunctions/pdfMLP.R")
 ```
 
 I load the data before stat (technical repeats aggregated and missing values replaced).
@@ -86,6 +88,7 @@ matval <- cbind(as.matrix(exprs(lhl[[1]])), as.matrix(exprs(lhl[[2]])), as.matri
 noise <- quantile(matval[!is.na(matval)], 0.01)
 stdev <- meddev
 
+#lp <- vector(mode = "list", length(lhl))
 for (i in seq_along(lhl)) {
   l <- as.matrix(exprs(lhl[[i]]))
   image2(l, main = paste0("Replicate ", i, " before normalisation"))
@@ -103,6 +106,14 @@ for (i in seq_along(lhl)) {
   plot2D(l, method = "hexbin")
   lhl[[i]] <- l
 }
+
+par(mfrow = c(2,2))
+pdf("Figures/LOPIT01.pdf", useDingbats=FALSE, 11.69, 8.27)
+for (i in seq_along(lhl)) {
+  plot2D(lhl[[i]], method = "hexbin")
+}
+dev.off()
+
 ```
 
 Combination of the data:
@@ -143,16 +154,19 @@ boxplot(exprs(hl[, o]))
 
 plot2D(hl, fcol = NULL, col = "black")
 plot2D(hl, method = "hexbin")
+
+par(mfrow = c(1,1))
+pdf("Figures/LOPIT01_combined.pdf", useDingbats=FALSE, 11.69, 8.27)
+plot2D(hl, method = "hexbin")
+dev.off()
 ```
 
 # Add markers
 
 
-## What are the lines on the plot?
+<!-- I extract from the stat table the proteins that are specific of a compartment and label them on the plot. -->
 
-I extract from the stat table the proteins that are specific of a compartment and label them on the plot.
-
-```{r}
+```{r, eval = F}
 matval <- export[,substr(x = names(export), 1, 2) == "In"]
 vec <- rep(NA, nrow(matval))
 rs <- rowSums(matval)
@@ -166,6 +180,11 @@ names(vec) <- export[,1]
 vec <- vec[!is.na(vec)]
 
 markers <- vec
+
+markersPresAbs <- markers
+markersPresAbs <- paste0(markersPresAbs, "-FromDataSet")
+names(markersPresAbs) <- names(markers)
+
 
 hl <- addMarkers(hl, markers)
 par(mfrow = c(1, 2))
@@ -189,44 +208,127 @@ legend(17, 0.3, unique(markers), lty = 1, col = col, bty = "n")
 ## Use markers specific for cellular compartments 
 
 
-I use the table from Laura, it is in the LOPIT folder.
+I use the table from Laura, it is in the LOPIT folder. These markers have been determined from the literature.
 
 ```{r}
-markersPresAbs <- markers
-markersPresAbs <- paste0(markersPresAbs, "-FromDataSet")
-names(markersPresAbs) <- names(markers)
 fData(hl)$markers <- NULL
 
-markertab <- read.table("LOPIT/Copie de protéines marqueurs LOPIT.txt", header = T, stringsAsFactors = F, sep = "\t")
+markertab <- read.table("LOPIT/protéines marqueurs LOPIT.txt", header = T, stringsAsFactors = F, sep = "\t")
 markers <- markertab$localisation
 markers[markers == "MycoMembrane - CW"] <- "Mycomembrane"
-markers[markers == "Plasma Mb - PM"] <- "PlasmaMembrane"
-markers[markers == "Cytosol Periplasm - CP"] <- "Cytoplasm"
-markers[markers == "secreted protein - CF"] <- "Secretome"
+markers[markers == "Plasma Mb - MP"] <- "PlasmaMembrane"
+markers[markers == "Cytosol.Periplasm - CP"] <- "Cytoplasm"
+markers[markers == "Secreted Protein - CF"] <- "Secretome"
 names(markers) <- markertab$accession
 
-markers2 <- c(markers, markersPresAbs)
-markers2 <- markers2[!duplicated(names(markers2))]
+# markers2 <- c(markers, markersPresAbs)
+# markers2 <- markers2[!duplicated(names(markers2))]
 
-hl <- addMarkers(hl, markers2)
+# hl2 <- hl
+hl <- addMarkers(hl, markers) # Only markers from the litterature (for the classification alg.)
+
+# Plot exports:
+col <- getStockcol()[1:4]
+
+pdf("Figures/LOPIT02.pdf", useDingbats=FALSE, 8.27, 8.27)
+par(mfrow = c(2, 2))
+plot2D(hl[, hl$Replicate == 1], main = "Replicate 1", col = col)
+legend(-4, -2.6, unique(markers), lty = 1, col = col, bty = "n")
+plot2D(hl[, hl$Replicate == 2], main = "Replicate 2", mirrorX = TRUE, col = col)
+plot2D(hl[, hl$Replicate == 3], main = "Replicate 3", mirrorX = TRUE, col = col)
+plot2D(hl[, hl$Replicate == 3], main = "Replicate 4", mirrorX = TRUE, col = col)
+plot2D(hl[, hl$Replicate == 1], dims = c(1, 3), main = "Replicate 1", col = col)
+legend(1.6, -1.6, unique(markers), lty = 1, col = col, bty = "n")
+plot2D(hl[, hl$Replicate == 2], dims = c(1, 3), main = "Replicate 2", mirrorX = TRUE, col = col)
+plot2D(hl[, hl$Replicate == 3], dims = c(1, 3), main = "Replicate 3", mirrorX = TRUE, col = col)
+plot2D(hl[, hl$Replicate == 3], dims = c(1, 3), main = "Replicate 4", mirrorX = TRUE, col = col)
+dev.off()
+
+pdf("Figures/LOPIT02_combined.pdf", useDingbats=FALSE, 11.69, 6.27)
 par(mfrow = c(1, 2))
-plot2D(hl, main = "pRolocmarkers for mouse", col = getStockcol()[c(1,4,2,7,3,11,10,9)])
-addLegend(hl, cex = .6, col = getStockcol()[c(1,4,2,7,3,11,10,9)])
-plot2D(hl, dims = c(1, 3), main = "Marker resolution along PC 1 and 7", col = getStockcol()[c(1,4,2,7,3,11,10,9)])
-#plot3D(hl)
+plot2D(hl, main = "Known markers", col = col)
+legend(-8, -4, unique(markers), lty = 1, col = col, bty = "n")
+plot2D(hl, dims = c(1, 3), main = "Known markers", col = col)
+dev.off()
 
-par(xpd=TRUE, mar = c(4,4,4,16), mfrow = c(1,1))
-hlo <- hl[, order(hl$Sample.name)]
-#col <- c("blueviolet", "darkblue", "red", "gold")
-col <- getStockcol()[c(1,4,2,7,3,11,10,9)][c(3,5,1,7)]
-plotDist(hlo[fData(hlo)$markers == unique(markers)[1],], pcol = col[1], fractions = "Sample.name")
-title(main = "Marker occupancy profiles along the gradient")
-for (i in 1:length(unique(markers))) {
-  matlines(t(exprs(hlo[fData(hlo)$markers == unique(markers)[i], ])), lty = 1, col = col[i], type = "l")
-}
-legend(17, 0.3, unique(markers2), lty = 1, col = col, bty = "n")
+
+#hl2 <- addMarkers(hl2, markers2)
+# par(mfrow = c(1, 2))
+# plot2D(hl2, main = "pRolocmarkers", col = getStockcol()[c(1,4,2,7,3,11,10,9)])
+# addLegend(hl2, cex = .6, col = getStockcol()[c(1,4,2,7,3,11,10,9)])
+# plot2D(hl2, dims = c(1, 3), main = "Marker resolution along PC 1 and 7", col = getStockcol()[c(1,4,2,7,3,11,10,9)])
+# plot3D(hl2)
+
+# par(xpd=TRUE, mar = c(4,4,4,16), mfrow = c(1,1))
+# hlo <- hl2[, order(hl2$Sample.name)]
+# #col <- c("blueviolet", "darkblue", "red", "gold")
+# col <- getStockcol()[c(1,4,2,7,3,11,10,9)][c(3,5,1,7)]
+# plotDist(hlo[fData(hlo)$markers == unique(markers)[1],], pcol = col[1], fractions = "Sample.name")
+# title(main = "Marker occupancy profiles along the gradient")
+# for (i in 1:length(unique(markers))) {
+#   matlines(t(exprs(hlo[fData(hlo)$markers == unique(markers)[i], ])), lty = 1, col = col[i], type = "l")
+# }
+# legend(17, 0.3, unique(markers2), lty = 1, col = col, bty = "n")
 ```
 
+# Find protein sub-cellular localisation
+
+```{r}
+# generating weithts for classification:
+w <- table(getMarkers(hl, verbose = TRUE))
+w <- 1/w[names(w) != "unknown"]
+```
+
+```{r, eval = TRUE}
+# Optimisation of the classifier parameters:
+params <- svmOptimisation(hl, fcol = "markers",
+                          times = 150, xval = 5,
+                          class.weights = w) # I have to check if it is necessary to give weights. Or if I should not give as weights the numbers of proteins in only one compartment in our data set.
+
+save(params, file = "Data/LOPITParams.Rdata")
+```
+
+```{r}
+load(file = "Data/LOPITParams.Rdata")
+plot(params)
+levelPlot(params)
+
+(best <- getParams(params))
+
+
+hl <- svmClassification(hl, params, class.weights = w, fcol = "markers")
+boxplot(fData(hl)$svm.scores ~ fData(hl)$svm, main = "class-specific classification distribution\nlower the better")
+
+#hl <- svmClassification(hl, cost = 16, sigma = 0.1, class.weights = w, fcol = "markers")
+(ts <- orgQuants(hl, fcol = "svm", scol = "svm.scores", mcol = "markers", t = .33))
+## set point size of each protein to be inversely proportional to the
+# ptsze <- exp(fData(hl)$svm.scores) - 1
+# ## plot new predictions
+# par(mfrow = c(1,2))
+# plot2D(hl, fcol = "svm", cex = ptsze, alpha = 0.6)
+# addLegend(hl, fcol = "svm", where = "bottomleft", bty = "n", cex = .5)
+# plot2D(hl, dims = c(1, 3), fcol = "svm", cex = ptsze)
+# 
+# plot3D(hl, fcol = "svm", cex = ptsze)
+
+
+
+hl <- getPredictions(hl, fcol = "svm", scol = "svm.scores", mcol = "markers", t = ts)
+## First remove the markers
+preds <- unknownMSnSet(hl)
+## Plot a boxplot of the scores of each organelle
+par(oma = c(10.5, 0, 0, 0)) ## sets outer margins
+boxplot(svm.scores ~ svm, data = fData(preds),
+        ylab = "SVM scores", las = 2)
+
+
+
+ptsze <- exp(fData(hl)$svm.scores) - 1
+par(mfrow = c(1,2))
+plot2D(hl, fcol = "svm.pred", cex = ptsze, alpha = 0.6)
+addLegend(hl, fcol = "svm", where = "bottomleft", bty = "n", cex = .5)
+plot2D(hl, dims = c(1, 3), fcol = "svm.pred", cex = ptsze, alpha = 0.6)
+```
 
 ```{r}
 sessionInfo()
